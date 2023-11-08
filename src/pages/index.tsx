@@ -1,7 +1,56 @@
-import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import Head from "next/head";
+import Image from "next/image";
+import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
+import { RouterOutputs, api } from "~/utils/api";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-import { api } from "~/utils/api";
+dayjs.extend(relativeTime);
+
+const CreatePostWizazrd = () => {
+  const { user } = useUser();
+  if (!user) return null;
+
+  return (
+    <div className="flex w-full grow gap-4">
+      <Image
+        src={user.imageUrl}
+        alt="Profile image"
+        className="h-12 w-12 rounded-full"
+        height={48}
+        width={48}
+      />
+      <input
+        placeholder="Type some emojis"
+        className="roud grow rounded-md bg-slate-800 bg-transparent px-4 outline-none"
+      />
+    </div>
+  );
+};
+
+type PostWithUser = RouterOutputs["post"]["getALL"][number];
+
+const PostView = (props: PostWithUser) => {
+  const { post, author } = props;
+  return (
+    <div key={post.id} className="flex border-b border-slate-400 p-4">
+      <Image
+        src={author.imageUrl}
+        alt="Author profile image"
+        className="h-14 w-14 rounded-full"
+        height={56}
+        width={56}
+      />
+      <div className="flex flex-col">
+        <div className="flex gap-2 font-bold text-slate-400">
+          <span>{`@${author.username}`}</span>•
+          <span>{dayjs(post.createdAt).fromNow()}</span>
+        </div>
+        <span>{post.content}</span>
+      </div>
+    </div>
+  );
+};
 
 export default function Home() {
   const user = useUser();
@@ -27,16 +76,17 @@ export default function Home() {
               </div>
             )}
             {!!user.isSignedIn && (
-              <div className="flex justify-center">
-                <SignOutButton />
+              <div className="flex grow items-center justify-center gap-4">
+                <CreatePostWizazrd />
+                <div className="whitespace-nowrap">
+                  <SignOutButton />
+                </div>
               </div>
             )}
           </div>
           <div className="flex flex-col">
-            {data?.map((post) => (
-              <div key={post.id} className="border-b border-slate-400 p-8">
-                {post.content}
-              </div>
+            {data?.map((fullPost) => (
+              <PostView {...fullPost} key={fullPost.post.id} />
             ))}
           </div>
         </div>
