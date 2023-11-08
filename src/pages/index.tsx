@@ -7,6 +7,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { LoadingPage, LoadingSpinner } from "~/components/loading";
 import { FormEventHandler, useState } from "react";
 import toast from "react-hot-toast";
+import { NextPage } from "next";
+import Link from "next/link";
 
 dayjs.extend(relativeTime);
 
@@ -78,17 +80,24 @@ const PostView = (props: PostWithUser) => {
   const { post, author } = props;
   return (
     <div key={post.id} className="flex border-b border-slate-400 p-4">
-      <Image
-        src={author.imageUrl}
-        alt="Author profile image"
-        className="h-14 w-14 rounded-full"
-        height={56}
-        width={56}
-      />
+      <Link href={`/@${author.username}`}>
+        <Image
+          src={author.imageUrl}
+          alt="Author profile image"
+          className="h-14 w-14 rounded-full"
+          height={56}
+          width={56}
+        />
+      </Link>
       <div className="flex flex-col">
         <div className="flex gap-2 font-bold text-slate-300">
-          <span>{`@${author.username}`}</span>•
-          <span className="font-thin">{dayjs(post.createdAt).fromNow()}</span>
+          <Link href={`/@${author.username}`}>
+            <span>{`@${author.username}`}</span>
+          </Link>
+          •
+          <Link href={`/post/${post.id}`}>
+            <span className="font-thin">{dayjs(post.createdAt).fromNow()}</span>
+          </Link>
         </div>
         <span className="text-2xl">{post.content}</span>
       </div>
@@ -112,7 +121,7 @@ const Feed = () => {
   );
 };
 
-export default function Home() {
+const Home: NextPage = () => {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
   api.post.getALL.useQuery();
 
@@ -147,4 +156,6 @@ export default function Home() {
       </main>
     </>
   );
-}
+};
+
+export default Home;
