@@ -46,6 +46,15 @@ const addUserDataToPosts = async (posts: Post[]) => {
   });
 };
 
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(3, "1 m"),
+  analytics: true,
+});
+
 export const postRouter = createTRPCRouter({
   getALL: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.db.post.findMany({
@@ -70,6 +79,10 @@ export const postRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const authorId = ctx.userId;
+
+      const { success } = await ratelimit.limit(authorId);
+
+      if (!success) throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
 
       const post = await ctx.db.post.create({
         data: {
