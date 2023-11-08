@@ -5,11 +5,24 @@ import { RouterOutputs, api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { LoadingPage } from "~/components/loading";
+import { FormEventHandler, useState } from "react";
 
 dayjs.extend(relativeTime);
 
 const CreatePostWizazrd = () => {
   const { user } = useUser();
+
+  const [input, setInput] = useState("");
+
+  const ctx = api.useUtils();
+
+  const { mutate, isLoading: isPosting } = api.post.create.useMutation({
+    onSuccess: () => {
+      setInput("");
+      void ctx.post.invalidate();
+    },
+  });
+
   if (!user) return null;
 
   return (
@@ -24,7 +37,11 @@ const CreatePostWizazrd = () => {
       <input
         placeholder="Type some emojis"
         className="roud grow rounded-md bg-slate-800 bg-transparent px-4 outline-none"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        disabled={isPosting}
       />
+      <button onClick={() => mutate({ content: input })}>Post</button>
     </div>
   );
 };

@@ -1,10 +1,13 @@
 import { clerkClient } from "@clerk/nextjs";
-import { User } from "@clerk/nextjs/dist/types/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { Post } from "@prisma/client";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  privateProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 import { filterUserForClient } from "../helpers/filterUserForClient";
 
 const addUserDataToPosts = async (posts: Post[]) => {
@@ -53,6 +56,30 @@ export const postRouter = createTRPCRouter({
     return addUserDataToPosts(posts);
   }),
 
+  getLatest: publicProcedure.query(({ ctx }) => {
+    return ctx.db.post.findFirst({
+      orderBy: { createdAt: "desc" },
+    });
+  }),
+
+  create: privateProcedure
+    .input(
+      z.object({
+        content: z.string().emoji("Only emojis are allowed").min(1).max(256),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const authorId = ctx.userId;
+
+      const post = await ctx.db.post.create({
+        data: {
+          authorId,
+          content: input.content,
+        },
+      });
+
+      return post;
+    }),
   // create: publicProcedure
   //   .input(z.object({ name: z.string().min(1) }))
   //   .mutation(async ({ ctx, input }) => {
@@ -65,10 +92,4 @@ export const postRouter = createTRPCRouter({
   //       },
   //     });
   //   }),
-
-  getLatest: publicProcedure.query(({ ctx }) => {
-    return ctx.db.post.findFirst({
-      orderBy: { createdAt: "desc" },
-    });
-  }),
 });
