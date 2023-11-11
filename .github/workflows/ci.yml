@@ -19,8 +19,8 @@ jobs:
       - name: Run TypeScript type checking
         run: npm run typecheck
 
-      - name: Run your custom command (e.g., npm run link)
-        run: npm run link
+      - name: Lint
+        run: npm run lint
 
       - name: Print Environment Variable
         run: echo $DATABASE_URL
