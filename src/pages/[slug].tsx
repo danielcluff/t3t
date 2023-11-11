@@ -1,9 +1,9 @@
 import Head from "next/head";
+import Image from "next/image";
 import { api } from "~/utils/api";
 import { GetServerSidePropsContext, NextPage } from "next";
 import { generateSSGHelper } from "~/server/api/helpers/ssgHelper";
 import { PageLayout } from "~/components/layout";
-import Image from "next/image";
 import { LoadingPage } from "~/components/loading";
 import { PostView } from "~/components/postview";
 
